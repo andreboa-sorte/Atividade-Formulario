@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>JQuery Validation</title>		
+		<link href="css/bootstrap.min.css" rel="stylesheet" type="text/css" />
+		<script type="text/javascript" src="js/jquery-3.3.1.min.js"></script>
+		<script type="text/javascript" src="js/bootstrap.min.js"></script>
+		<script type="text/javascript" src="js/jquery.mask.min.js"></script>
+		<script type="text/javascript" src="js/jquery.validate.min.js"></script>
+		<script type="text/javascript" src="js/additional-methods.min.js"></script>
+		<script type="text/javascript" src="js/localization/messages_pt_BR.js"></script>
+		
+		<script type="text/javascript">
+		    $(function () {
+            $('#datanacimento').mask('00/00/0000');
+			  $("#celular").mask("(00) 0000-0000");
+			  $("#renda").mask("999.999.990,00", {reverse: true});
+			  $("#rg").mask("999.999.999-W", {
+				translation: {
+					'W': {
+						pattern: /[X0-9]/
+					}
+				},
+				reverse: true
+			});
+			$("#cep").mask("00.000-000");
+			$("#numcasa").mask("0000");
+			$("#cpf").mask("000.000.000-00");
+        });
+		/*$(document).ready(function(){
+			  $('#datanacimento').mask('00/00/0000');
+			  $("#celular").mask("(00) 0000-0000");
+			  $("#renda").mask("999.999.990,00", {reverse: true});
+			  $("#rg").mask("999.999.999-W", {
+				translation: {
+					'W': {
+						pattern: /[X0-9]/
+					}
+				},
+				reverse: true
+			});
+			$("#cep").mask("00.000-000");
+			$("#numcasa").mask("0000");
+		
+			})*/
+		</script>
+		<script type="text/javascript">	
+			jQuery.validator.addMethod("cpf", function(value, element) {
+   value = jQuery.trim(value);
+
+    value = value.replace('.','');
+    value = value.replace('.','');
+    cpf = value.replace('-','');
+    while(cpf.length < 11) cpf = "0"+ cpf;
+    var expReg = /^0+$|^1+$|^2+$|^3+$|^4+$|^5+$|^6+$|^7+$|^8+$|^9+$/;
+    var a = [];
+    var b = new Number;
+    var c = 11;
+    for (i=0; i<11; i++){
+        a[i] = cpf.charAt(i);
+        if (i < 9) b += (a[i] * --c);
+    }
+    if ((x = b % 11) < 2) { a[9] = 0 } else { a[9] = 11-x }
+    b = 0;
+    c = 11;
+    for (y=0; y<10; y++) b += (a[y] * c--);
+    if ((x = b % 11) < 2) { a[10] = 0; } else { a[10] = 11-x; }
+
+    var retorno = true;
+    if ((cpf.charAt(9) != a[9]) || (cpf.charAt(10) != a[10]) || cpf.match(expReg)) retorno = false;
+
+    return this.optional(element) || retorno;
+
+}, "Informe um CPF válido");
+
+			
+			$(document).ready(function(){
+            //Quando o campo do CEP perde o foco.
+            $("#cep").blur(function () {
+                //Remove as pontuações do CEP.
+                var cep = $(this).val().replace(/\D/g, '');
+                //Verifica se o campo CEP possui valor informado.
+                if (cep != "") {
+                    //Expressão regular para validar o CEP.
+                    var validacep = /^[0-9]{8}$/;
+                    //Valida o formato do CEP.
+                    if (validacep.test(cep)) {
+                        //Consulta o webservice viacep.com.br.
+                        $.getJSON("https://viacep.com.br/ws/" + cep + "/json/?callback=?", function (dados) {
+                            if (!("erro" in dados)) {
+                               // alert("CEP encontrado!");
+							   document.getElementById("testeerro").innerHTML="";
+                            }
+                            else {
+								document.getElementById("testeerro").innerHTML="CEP não encontrado!";
+                                //alert("CEP não encontrado!");
+                            }
+                        });
+                    }
+                    else {
+						document.getElementById("testeerro").innerHTML="Formato de CEP inválido!";
+                        //alert("Formato de CEP inválido!");
+                    }
+                }
+            });
+        
+				$("#formCadastro").validate({
+					rules:{
+						nome: {
+							required: true,
+							maxlength: 100,
+							minlength: 10,
+							minWords: 2
+						},
+						cidade: {
+							required: true
+						},
+						cpf:{
+							cpf:true,
+							required:true
+						},
+						datanacimento:{
+							required:true
+						},
+						opsexo:{
+							required:true
+						},
+						logradouro:{
+							required:true,
+							maxlength:100
+						},
+						numlogradoro:{
+							required:true
+						},
+						numcasa:{
+							required:true
+						},
+						bairro:{
+							required:true,
+							maxlength:100
+							
+						},
+						comp:{
+							required:true,
+							maxlength:100
+						},
+						estado:{
+							required:true
+						},
+						cidade:{
+							required:true
+						},
+						escolaridade:{
+							required:true
+						},
+						profissao:{
+							required:true
+						},
+						rg:{
+							required:true
+						},
+						celular:{
+							required:true
+							
+						},
+						renda:{
+							required:true
+						}
+					},
+					messages: {
+        				 cpf: { cpf: 'CPF inválido'}
+      				},
+					submitHandler: function(form){
+						alert("enviou")						
+					}
+				})
+			})
+		</script>
+	</head>
+	<body>
+		<div class="container">
+			<h1>Validação de formulários</h1>
+			<form name="formCadastro" id="formCadastro" method="post">
+				<div class="row">
+					<label>Nome</label>
+					<input type="text" name="nome" id="nome" class="form-control" placeholder="Nome" />
+				</div>
+				<div class="row">
+					<label>Data de Nacimento: </label>
+            <input type="text" class="form-control" name="datanacimento" id="datanacimento" placeholder="00/00/0000" >
+				</div>				
+
+				<div class="row">
+				<label>Sexo:</label>
+				<br>
+				<label>Mascolino</label>
+				<input type="radio" name="opsexo" class="" id="sexoM">
+				<br>
+				<label>Femenino</label>
+				<input type="radio" name="opsexo" class="" id="sexoF">
+			</div>
+			<div class="row">
+				<label>Tipo de Logradouro</label>
+				<select name="logradouro" id="tiporua" class="form-control">
+					<option value="">-selecione uma opcao-</option>
+					<option value="rua">Rua</option>
+					<option value="ruasemsaida">Rua Sem Saida</option>
+					<option value="avenida">Avenida</option>
+					<option value="servidao">Servidao</option>
+				</select>
+			</div>
+			
+			
+			<div class="row">
+				<label>Logradouro: </label>
+				<input type="text" class="form-control" name="numlogradoro" id="numlogradoro" placeholder="Logradouro">
+			</div>
+			
+			<div class="row">
+				<label>Numero: </label>
+				<input type="text" class="form-control" name="numcasa" id="numcasa" placeholder="0000">
+			</div>
+
+			<div class="row">
+            <label>Bairro: </label>
+            <input type="text" class="form-control" name="bairro" id="bairro" placeholder="Bairro">
+			</div>
+
+			<div class="row">
+            <label>CEP: </label>
+			<input type="text" class="form-control" name="cep" id="cep" placeholder="00.000-000" >
+			<p id="testeerro"></p>
+			</div>
+			
+			<div class="row">
+            <label>Complemento: </label>
+            <input type="text" class="form-control" name="comp" id="comp" placeholder="Complemento">
+			</div>
+			<!--tem q fazer a do estado-->
+			<div class="row">
+				<label>Estado:</label>
+				<select name="estado" id="estado" class="form-control">
+					<option value="">-selecione uma opcao-</option>
+					<option value="SC">Santa Catarina</option>
+					<option value="SP">Sao Paulo</option>
+					
+				</select>
+				</div>
+			<!--tem q fazer a da cidade tbm-->
+			<div class="row">
+				<label>Cidade:</label>
+				<select name="cidade" id="cidade" class="form-control">
+					<option value="">-selecione uma opcao-</option>
+					<option value="florianopolis">florianopolis</option>
+					<option value="Sao Paulo">Sao Paulo</option>
+					
+				</select>
+				</div>
+			
+			<div class="row">
+			<label>Escolaridade:</label>
+            <select name="escolaridade" id="tipoescolaridade" class="form-control">
+                <option value="">-selecione uma opcao-</option>
+                <option value="4">Ensino Superior</option>
+                <option value="3">Ensino Medio</option>
+                <option value="2">Fundamental 2</option>
+                <option value="1">Fundamental 1</option>
+            </select>
+			</div>
+
+			<div class="row">
+				<label>Profissao:</label>
+				<select name="profissao" id="profissao" class="form-control">
+					<option value="">-selecione uma opcao-</option>
+					<option value="Professor(a)">Professor(a)</option>
+					<option value="Medico(a)">Medico(a)</option>
+					<option value="Engenheiro(a) Eletrico">Engenheiro(a) Eletrico</option>
+					<option value="Farmaceutico(a)">Farmaceutico(a)</option>
+				</select>
+				</div>
+			<div class="row">
+			<label>CPF: </label>
+            <input type="text" class="form-control" name="cpf" id="cpf" placeholder="000.000.000-00" >
+			</div>
+			<div class="row">
+            <label>RG: </label>
+            <input type="text" class="form-control" name="rg" id="rg" placeholder="00.000.000-0" >
+			</div>
+			
+			<div class="row">
+            <label>Celular: </label>
+            <input type="text" class="form-control" name="celular" id="celular" placeholder="(00)00000.0000" >
+			</div>
+			
+			<div class="row">
+            <label>Renda Mensal: </label>
+            <input type="text" class="form-control" name="renda" id="renda" placeholder="R$000.000">
+			</div>
+			<div class="row">
+				<input type="submit" name="enviar" id="enviar" class="btn btn-primary form-control" />
+			</div>
+			</form>
+		</div>
+	</body>
+</html>
